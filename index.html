@@ -188,13 +188,13 @@
       </div>
       <div class="msg" id="gateMsg" hidden></div>
 
-      <form id="loginForm" novalidate>
+      <form id="loginForm" method="post" action="javascript:void(0)" novalidate>
         <label class="field"><span>البريد الإلكتروني</span><input class="input" type="email" name="email" dir="ltr" autocomplete="email" required></label>
         <label class="field"><span>كلمة المرور</span><input class="input" type="password" name="password" dir="ltr" autocomplete="current-password" required></label>
         <button class="btn btn-primary" type="submit">دخول</button>
       </form>
 
-      <form id="joinForm" novalidate hidden>
+      <form id="joinForm" method="post" action="javascript:void(0)" novalidate hidden>
         <div id="joinStep1">
           <label class="field"><span>رمز الدعوة</span><input class="input code-input" type="text" name="code" dir="ltr" autocomplete="off" maxlength="20" placeholder="XXXX-XXXX"></label>
           <button class="btn btn-primary" type="submit">متابعة</button>
@@ -224,7 +224,7 @@
       <h2>حسابك ما له صلاحية بعد</h2>
       <p class="sub">إذا عندك رمز دعوة من المدير، اكتبه هنا.</p>
       <div class="msg" id="noAccessMsg" hidden></div>
-      <form id="redeemForm" novalidate>
+      <form id="redeemForm" method="post" action="javascript:void(0)" novalidate>
         <label class="field"><span>رمز الدعوة</span><input class="input code-input" type="text" name="code" dir="ltr" autocomplete="off" maxlength="20" placeholder="XXXX-XXXX" required></label>
         <button class="btn btn-primary" type="submit">تفعيل الرمز</button>
       </form>
@@ -280,7 +280,7 @@
         <div class="grid2">
           <div class="panel">
             <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>إنشاء رمز دعوة</h3>
-            <form id="codeForm" novalidate>
+            <form id="codeForm" method="post" action="javascript:void(0)" novalidate>
               <label class="field"><span>اسم الشخص</span><input class="input" type="text" name="name" maxlength="60" placeholder="مثال: أحمد العتيبي"></label>
               <label class="field"><span>بريده الإلكتروني</span><input class="input" type="email" name="email" dir="ltr" placeholder="name@example.com"></label>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
@@ -337,6 +337,8 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
 </script>
 <script>
 (function(){
+  /* أي نموذج ما يرسل البيانات للرابط أبدًا */
+  document.addEventListener('submit', function(e){ e.preventDefault(); }, true);
   var cfg = window.ENTILAQ_DB;
   var $ = function(id){ return document.getElementById(id); };
   var RANK = { 'عامل':1, 'مشرف':2, 'مدير':3 };
@@ -414,6 +416,19 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
   document.querySelectorAll('[data-gtab]').forEach(function(b){ b.addEventListener('click', function(){ gTab(b.dataset.gtab); }); });
   document.querySelectorAll('[data-back]').forEach(function(b){ b.addEventListener('click', function(){ showGate('auth'); }); });
   document.querySelectorAll('[data-logout]').forEach(function(b){ b.addEventListener('click', async function(){ await sb.auth.signOut(); location.reload(); }); });
+  $('loginForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var f = this.elements, b = this.querySelector('button');
+    var email = f.email.value.trim().toLowerCase(), pass = f.password.value;
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return msg($('gateMsg'), 'البريد غير صحيح.');
+    if(!pass) return msg($('gateMsg'), 'اكتب كلمة المرور.');
+    busy(b, true, 'جاري الدخول…');
+    var r = await sb.auth.signInWithPassword({ email: email, password: pass });
+    busy(b, false);
+    if(r.error) return msg($('gateMsg'), errText(r.error));
+    enter(r.data.session);
+  });
+
   /* ---------- الانضمام برمز: الرمز ← (البيانات من المدير) ← كلمة المرور ---------- */
   var invite = null, jf = $('joinForm');
   function joinStep(n){ $('joinStep1').hidden = n !== 1; $('joinStep2').hidden = n !== 2; msg($('gateMsg'), ''); }
@@ -440,6 +455,7 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
   }
   $('joinBack').addEventListener('click', function(){ invite = null; joinStep(1); });
   var qs = new URLSearchParams(location.search);
+  if(qs.has('password') || qs.has('email')) history.replaceState(null, '', location.pathname);
   if(qs.get('code')){ jf.elements.code.value = qs.get('code').toUpperCase(); gTab('join'); checkCode(); }
 
   jf.addEventListener('submit', async function(e){
