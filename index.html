@@ -181,6 +181,17 @@
   .switch input{width:20px;height:20px;accent-color:var(--teal);}
   .ed-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center;}
   @media (max-width:800px){ .ed,.g2{grid-template-columns:1fr;} .preview,.ed textarea{min-height:220px;} .ct-row{flex-wrap:wrap;} .ct-actions{width:100%;justify-content:flex-end;} }
+  /* أقسام العامل */
+  .secs{display:flex;flex-wrap:wrap;gap:6px;}
+  .sec{position:relative;cursor:pointer;}
+  .sec input{position:absolute;opacity:0;pointer-events:none;}
+  .sec span{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:100px;border:1.5px solid var(--line);background:#fff;font-size:.8rem;font-weight:700;color:var(--ink-soft);transition:all .15s;}
+  .sec span::before{content:"+";font-weight:900;}
+  .sec input:checked + span{border-color:var(--teal);background:rgba(23,163,152,.10);color:#0E6F67;}
+  .sec input:checked + span::before{content:"✓";}
+  .sec input:focus-visible + span{box-shadow:0 0 0 3px rgba(23,163,152,.25);}
+  .secs.sm .sec span{padding:4px 9px;font-size:.72rem;}
+  .sec-tags{display:block;font-size:.72rem;color:var(--ink-soft);margin-top:4px;}
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:#fff;padding:11px 20px;border-radius:100px;font-size:.86rem;font-weight:700;transition:all .25s;z-index:50;pointer-events:none;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   .spin{display:inline-block;width:18px;height:18px;border:2.5px solid rgba(11,37,54,.15);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;}
@@ -396,6 +407,14 @@
                   <select class="input" name="days"><option value="1">يوم</option><option value="7" selected>أسبوع</option><option value="30">شهر</option><option value="0">بدون انتهاء</option></select>
                 </label>
               </div>
+              <div class="field" id="secField"><span>الأقسام اللي يمسكها العامل</span>
+                <div class="secs" id="secPick">
+                  <label class="sec"><input type="checkbox" value="requests" checked><span>الطلبات</span></label>
+                  <label class="sec"><input type="checkbox" value="customers"><span>العملاء</span></label>
+                  <label class="sec"><input type="checkbox" value="posts"><span>المقالات</span></label>
+                  <label class="sec"><input type="checkbox" value="projects"><span>المشاريع</span></label>
+                </div>
+              </div>
               <div class="msg" id="codeMsg" hidden></div>
               <button class="btn btn-primary" type="submit" style="width:100%">إنشاء الرمز</button>
             </form>
@@ -409,8 +428,8 @@
             </div>
             <div class="perm">
               <b>مدير:</b> كل شي + الفريق والرموز + حذف الطلبات<br>
-              <b>مشرف:</b> الطلبات (الحالة والملاحظات) + العملاء<br>
-              <b>عامل:</b> الطلبات (الحالة والملاحظات)
+              <b>مشرف:</b> الطلبات والعملاء والمقالات والمشاريع<br>
+              <b>عامل:</b> الأقسام اللي تختارها له بس
             </div>
           </div>
           <div class="stack">
@@ -476,6 +495,16 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
   function waNum(p){ p = String(p || '').replace(/\D/g, ''); if(/^05\d{8}$/.test(p)) p = '966' + p.slice(1); return p; }
   function stClass(s){ return 'st-' + String(s || '').split(' ')[0]; }
   function can(min){ return state.role && RANK[state.role] >= RANK[min]; }
+  var SEC_NAMES = { requests:'الطلبات', customers:'العملاء', posts:'المقالات', projects:'المشاريع' };
+  var SEC_KEYS = ['requests', 'customers', 'posts', 'projects'];
+  function has(sec){
+    if(state.role === 'مدير') return true;
+    if(state.role === 'مشرف') return sec !== 'team';
+    return (state.sections || []).indexOf(sec) > -1;
+  }
+  var TAB_OK = { requests: function(){ return has('requests'); }, customers: function(){ return has('customers'); },
+                 content: function(){ return has('posts') || has('projects'); }, team: function(){ return state.role === 'مدير'; } };
+  function secLabel(arr){ return (arr || []).map(function(k){ return SEC_NAMES[k] || k; }).join('، '); }
   function msg(box, text, kind){ box.hidden = !text; box.textContent = text || ''; box.className = 'msg ' + (kind || 'err'); }
   function busy(btn, on, label){ if(on){ btn.dataset.l = btn.textContent; btn.textContent = label || '…'; } else if(btn.dataset.l) btn.textContent = btn.dataset.l; btn.disabled = on; }
   function errText(e){
@@ -546,14 +575,14 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
     if(r.error) return msg($('gateMsg'), errText(r.error));
     var d = Array.isArray(r.data) ? r.data[0] : r.data;
     if(!d) return msg($('gateMsg'), 'الرمز غير صحيح.');
-    invite = { code: code, role: d.role, name: d.full_name || '', email: d.email || '' };
+    invite = { code: code, role: d.role, name: d.full_name || '', email: d.email || '', sections: d.sections || [] };
     var known = !!invite.email;
     $('invitee').hidden = !known; $('joinFree').hidden = known;
     if(known){
       $('invAv').textContent = (invite.name || invite.email).trim().charAt(0);
       $('invName').textContent = 'أهلًا ' + (invite.name || '');
       $('invEmail').textContent = invite.email;
-      var rb = $('invRole'); rb.textContent = invite.role; rb.className = 'role role-' + invite.role;
+      var rb = $('invRole'); rb.textContent = invite.role + (invite.role === 'عامل' && invite.sections.length ? ' · ' + secLabel(invite.sections) : ''); rb.className = 'role role-' + invite.role;
     } else { jf.elements.name.value = invite.name; }
     joinStep(2);
     setTimeout(function(){ (known ? jf.elements.password : jf.elements.name).focus(); }, 50);
@@ -603,19 +632,19 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
   async function enter(session){
     if(!session){ return showGate('auth'); }
     state.user = session.user;
-    var r = await sb.from('staff').select('role, full_name').eq('user_id', state.user.id).maybeSingle();
+    var r = await sb.from('staff').select('role, full_name, sections').eq('user_id', state.user.id).maybeSingle();
     if(!r.data){
       var pending = null; try{ pending = sessionStorage.getItem('pendingInvite'); }catch(x){}
       pending = pending || (state.user.user_metadata || {}).invite_code;
       if(pending){
         var rd = await sb.rpc('redeem_invite', { p_code: pending, p_name: (state.user.user_metadata || {}).full_name || null });
         try{ sessionStorage.removeItem('pendingInvite'); }catch(x){}
-        if(!rd.error){ toast('أهلًا بك في الفريق — ' + rd.data); r = await sb.from('staff').select('role, full_name').eq('user_id', state.user.id).maybeSingle(); }
+        if(!rd.error){ toast('أهلًا بك في الفريق — ' + rd.data); r = await sb.from('staff').select('role, full_name, sections').eq('user_id', state.user.id).maybeSingle(); }
         else { showGate('noaccess'); return msg($('noAccessMsg'), errText(rd.error)); }
       }
     }
     if(!r.data){ return showGate('noaccess'); }
-    state.role = r.data.role; state.name = r.data.full_name || state.user.email;
+    state.role = r.data.role; state.sections = r.data.sections || []; state.name = r.data.full_name || state.user.email;
     startApp();
   }
 
@@ -625,8 +654,16 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
     if(location.hash && /access_token|type=/.test(location.hash)) history.replaceState(null, '', location.pathname);
     $('meName').textContent = state.name;
     var rb = $('meRole'); rb.textContent = state.role; rb.className = 'role role-' + state.role;
-    document.querySelectorAll('.nav [data-min]').forEach(function(b){ b.hidden = !can(b.dataset.min); });
-    switchTab('requests');
+    var first = null;
+    document.querySelectorAll('.nav [data-tab]').forEach(function(b){ var ok = TAB_OK[b.dataset.tab](); b.hidden = !ok; if(ok && !first) first = b.dataset.tab; });
+    if(state.role === 'عامل'){ rb.textContent = 'عامل' + (state.sections.length ? ' · ' + secLabel(state.sections) : ''); }
+    if(!first){
+      document.querySelectorAll('[data-view]').forEach(function(v){ v.hidden = true; });
+      var m = document.querySelector('main'); m.innerHTML = '';
+      m.appendChild(el('div', { class:'empty', text:'ما عندك أقسام للحين. اطلب من المدير يحدد لك قسم.' }));
+      return;
+    }
+    switchTab(first);
   }
   function switchTab(t){
     state.tab = t;
@@ -841,6 +878,8 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
     posts = r[0].data || []; projects = r[1].data || []; state.loaded.content = true; renderCt();
   }
   function renderCt(){
+    if(!has(ct)) ct = has('posts') ? 'posts' : 'projects';
+    document.querySelectorAll('[data-ct]').forEach(function(b){ b.hidden = !has(b.dataset.ct); });
     document.querySelectorAll('[data-ct]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.ct === ct)); });
     $('cntPosts').textContent = posts.length; $('cntProjects').textContent = projects.length;
     $('ctNew').textContent = ct === 'posts' ? '+ مقال جديد' : '+ مشروع جديد';
@@ -975,7 +1014,9 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return msg($('codeMsg'), 'البريد غير صحيح.');
     if(state.staff.some(function(x){ return (x.email || '').toLowerCase() === email; })) return msg($('codeMsg'), 'هذا البريد موجود في الفريق من قبل.');
     msg($('codeMsg'), '');
-    var row = { code: randCode(), role: f.role.value, max_uses: 1, full_name: name, email: email,
+    var secs = Array.prototype.filter.call($('secPick').querySelectorAll('input'), function(c){ return c.checked; }).map(function(c){ return c.value; });
+    if(f.role.value === 'عامل' && !secs.length) return msg($('codeMsg'), 'اختر قسم واحد على الأقل للعامل.');
+    var row = { code: randCode(), role: f.role.value, max_uses: 1, full_name: name, email: email, sections: f.role.value === 'عامل' ? secs : [],
                 expires_at: days ? new Date(Date.now() + days * 864e5).toISOString() : null };
     busy(b, true, 'جاري الإنشاء…');
     var r = await sb.from('invite_codes').insert(row).select().single();
@@ -984,9 +1025,13 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
     state.codes.unshift(r.data); renderTeam();
     $('newCode').hidden = false; $('newCodeText').textContent = r.data.code; $('newCodeRole').textContent = r.data.role; $('newCodeName').textContent = r.data.full_name;
     $('newCode').dataset.name = r.data.full_name;
-    $('shareCode').href = 'https://wa.me/?text=' + encodeURIComponent(shareText(r.data.code, r.data.role, r.data.full_name));
+    var roleTxt = r.data.role + (r.data.role === 'عامل' && (r.data.sections || []).length ? ' (' + secLabel(r.data.sections) + ')' : '');
+    $('newCodeRole').textContent = roleTxt;
+    $('shareCode').href = 'https://wa.me/?text=' + encodeURIComponent(shareText(r.data.code, roleTxt, r.data.full_name));
     f.name.value = ''; f.email.value = '';
   });
+  function syncSecField(){ $('secField').hidden = $('codeForm').elements.role.value !== 'عامل'; }
+  $('codeForm').elements.role.addEventListener('change', syncSecField); syncSecField();
   $('copyCode').addEventListener('click', function(){ copy(shareText($('newCodeText').textContent, $('newCodeRole').textContent, $('newCode').dataset.name)); });
 
   function codeState(c){
@@ -1000,10 +1045,26 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
       var me = s.user_id === state.user.id;
       var sel = el('select', { class:'input', style:'padding:7px 10px;font-size:.84rem;max-width:120px', disabled: me || null }, ['مدير', 'مشرف', 'عامل'].map(function(x){ var o = el('option', { value:x, text:x }); if(x === s.role) o.selected = true; return o; }));
       sel.addEventListener('change', async function(){
-        var r = await sb.from('staff').update({ role: sel.value }).eq('user_id', s.user_id).select().single();
+        var upd = { role: sel.value };
+        if(sel.value === 'عامل' && !(s.sections || []).length) upd.sections = ['requests'];
+        var r = await sb.from('staff').update(upd).eq('user_id', s.user_id).select().single();
         if(r.error){ sel.value = s.role; return toast(errText(r.error)); }
-        s.role = r.data.role; toast('تغيّرت الصلاحية إلى ' + s.role);
+        s.role = r.data.role; s.sections = r.data.sections || upd.sections || s.sections; toast('تغيّرت الصلاحية إلى ' + s.role); renderTeam();
       });
+      var secBox = null;
+      if(s.role === 'عامل'){
+        secBox = el('div', { class:'secs sm', style:'margin-top:6px' }, SEC_KEYS.map(function(k){
+          var cb = el('input', { type:'checkbox', value:k }); cb.checked = (s.sections || []).indexOf(k) > -1;
+          cb.addEventListener('change', async function(){
+            var next = SEC_KEYS.filter(function(x){ return x === k ? cb.checked : (s.sections || []).indexOf(x) > -1; });
+            if(!next.length){ cb.checked = true; return toast('لازم قسم واحد على الأقل'); }
+            var r = await sb.from('staff').update({ sections: next }).eq('user_id', s.user_id).select().single();
+            if(r.error){ cb.checked = !cb.checked; return toast(errText(r.error)); }
+            s.sections = r.data.sections || next; toast('انحفظت أقسام ' + (s.full_name || 'العامل'));
+          });
+          return el('label', { class:'sec' }, [cb, el('span', { text: SEC_NAMES[k] })]);
+        }));
+      }
       var rm = null;
       if(!me){
         rm = el('button', { type:'button', class:'btn btn-danger btn-sm', text:'إزالة' });
@@ -1016,7 +1077,7 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
       sb_.appendChild(el('tr', {}, [
         el('td', { 'data-label':'الاسم' }, [el('b', { text: s.full_name || '—' }), me ? ' (أنت)' : null]),
         el('td', { 'data-label':'البريد', class:'ltr', text: s.email || '—' }),
-        el('td', { 'data-label':'الصلاحية' }, [sel]),
+        el('td', { 'data-label':'الصلاحية' }, [sel, secBox]),
         el('td', { 'data-label':'انضم', text: fmt(s.created_at) }),
         el('td', {}, [rm])
       ]));
@@ -1035,7 +1096,7 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
       cb.appendChild(el('tr', {}, [
         el('td', { 'data-label':'الرمز' }, [el('span', { class:'codecell', text: c.code })]),
         el('td', { 'data-label':'الشخص' }, [el('b', { text: c.full_name || c.note || '—' }), c.email ? el('div', { style:'font-size:.76rem;color:var(--ink-soft);direction:ltr;text-align:right', text: c.email }) : null]),
-        el('td', { 'data-label':'الصلاحية' }, [el('span', { class:'role role-' + c.role, text: c.role })]),
+        el('td', { 'data-label':'الصلاحية' }, [el('span', { class:'role role-' + c.role, text: c.role }), c.role === 'عامل' && (c.sections || []).length ? el('span', { class:'sec-tags', text: secLabel(c.sections) }) : null]),
         el('td', { 'data-label':'ينتهي', text: c.expires_at ? fmt(c.expires_at) : 'بدون' }),
         el('td', { 'data-label':'الحالة' }, [el('span', { class: st[1], text: st[0] })]),
         el('td', {}, [el('div', { style:'display:flex;gap:6px' }, [st[0] === 'فعّال' ? cp : null, del])])
