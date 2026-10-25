@@ -205,6 +205,15 @@
   .bulk{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 14px;border:1.5px dashed rgba(32,65,145,.35);border-radius:14px;background:rgba(32,65,145,.04);margin-bottom:14px;}
   .bulk select{padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-weight:700;}
   .jm-prev{width:180px;aspect-ratio:4/5;object-fit:cover;border-radius:12px;border:1px solid var(--line);}
+  /* مقاطع جمال */
+  .jv-img{aspect-ratio:9/16;background:linear-gradient(160deg,#17316e,#204191 60%,#3b5fc0) center/cover no-repeat;position:relative;display:flex;align-items:center;justify-content:center;}
+  .jv-play{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  .jv-play svg{width:22px;height:22px;color:#204191;margin-inline-start:-3px;}
+  .jv-src{position:absolute;bottom:8px;inset-inline-end:8px;padding:2px 9px;border-radius:100px;background:rgba(0,0,0,.55);color:#fff;font-size:.7rem;font-weight:800;}
+  .seg{display:inline-flex;gap:4px;padding:4px;border-radius:100px;background:rgba(11,37,54,.06);}
+  .seg button{padding:8px 16px;border-radius:100px;font-weight:800;font-size:.86rem;color:var(--ink-soft);}
+  .seg button[aria-pressed="true"]{background:#fff;color:#204191;box-shadow:0 2px 8px rgba(11,37,54,.1);}
+  .jv-poster{width:140px;aspect-ratio:9/16;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:#17316e;}
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:#fff;padding:11px 20px;border-radius:100px;font-size:.86rem;font-weight:700;transition:all .25s;z-index:50;pointer-events:none;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   .spin{display:inline-block;width:18px;height:18px;border:2.5px solid rgba(11,37,54,.15);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;}
@@ -409,11 +418,13 @@
       <section data-view="jamal" hidden>
         <div id="jmList">
           <div class="ct-head">
-            <span class="jm-brand">📸 تصاميم منصة جمال</span>
+            <span class="jm-brand">📸 منصة جمال</span>
+            <div class="seg" role="tablist"><button type="button" data-jk="designs" aria-pressed="true">التصاميم</button><button type="button" data-jk="videos" aria-pressed="false">المقاطع <span id="cntVideos"></span></button></div>
             <div style="flex:1"></div>
             <a class="btn btn-ghost btn-sm" href="https://jamal360.net" target="_blank" rel="noopener">فتح موقع جمال ↗</a>
             <button class="btn btn-primary" type="button" id="jmNew">+ تصميم جديد</button>
           </div>
+          <div id="jmDesigns">
           <div class="bulk">
             <b style="font-size:.86rem">رفع مجموعة صور مرة وحدة:</b>
             <select id="jmBulkCat" aria-label="تصنيف الصور"></select>
@@ -423,6 +434,11 @@
           </div>
           <div class="chips" id="jmFilters" style="margin-bottom:14px"></div>
           <div class="jm-grid" id="jmRows"></div>
+          </div>
+          <div id="jvWrap" hidden>
+            <p class="hint" style="margin-bottom:12px">ارفع ملف فيديو (حتى 50 ميغا)، أو الصق رابط من يوتيوب أو تيك توك أو إنستقرام.</p>
+            <div class="jm-grid" id="jvRows"></div>
+          </div>
         </div>
         <div class="editor-card" id="jmEd" hidden>
           <h2 id="jmEdTitle">تصميم جديد</h2>
@@ -447,6 +463,44 @@
           <div class="ed-actions">
             <button class="btn btn-primary" type="button" id="jmSave">حفظ التصميم</button>
             <button class="btn btn-ghost" type="button" id="jmCancel">إلغاء</button>
+          </div>
+        </div>
+
+        <div class="editor-card" id="jvEd" hidden>
+          <h2 id="jvEdTitle">مقطع جديد</h2>
+          <div class="g2">
+            <div>
+              <label class="field"><span>عنوان المقطع</span><input class="input" id="jvTitle" maxlength="120" placeholder="مثال: لقطات حفل تخرج"></label>
+              <div class="g2">
+                <label class="field"><span>التصنيف</span><select class="input" id="jvCat"></select></label>
+                <label class="field"><span>الترتيب <span class="hint">(الأصغر أول)</span></span><input class="input" type="number" id="jvOrder" value="0" dir="ltr"></label>
+              </div>
+              <div class="field"><span>المقطع</span>
+                <div class="seg" style="margin-bottom:10px"><button type="button" data-vs="file" aria-pressed="true">رفع ملف</button><button type="button" data-vs="link" aria-pressed="false">رابط</button></div>
+                <div id="jvFileBox">
+                  <input type="file" id="jvFile" accept="video/*" hidden>
+                  <button class="btn btn-ghost btn-sm" type="button" id="jvFileBtn">اختيار فيديو</button>
+                  <span class="hint" id="jvFileInfo">MP4 أو MOV — حتى 50 ميغا</span>
+                </div>
+                <div id="jvLinkBox" hidden>
+                  <input class="input" id="jvLink" dir="ltr" placeholder="https://www.youtube.com/watch?v=… أو رابط تيك توك / إنستقرام">
+                  <span class="hint" id="jvLinkInfo"></span>
+                </div>
+              </div>
+              <label class="switch"><input type="checkbox" id="jvPublished" checked> عرض المقطع في موقع جمال</label>
+            </div>
+            <div class="field"><span>صورة الغلاف</span>
+              <div class="cover-box" style="flex-direction:column;align-items:flex-start">
+                <img class="jv-poster" id="jvPoster" alt="" hidden><input type="file" id="jvPosterFile" accept="image/*" hidden>
+                <button class="btn btn-ghost btn-sm" type="button" id="jvPosterBtn">اختيار غلاف</button>
+                <span class="hint">تتولّد تلقائيًا للفيديو المرفوع ومقاطع يوتيوب</span>
+              </div>
+            </div>
+          </div>
+          <div class="msg" id="jvMsg" hidden></div>
+          <div class="ed-actions">
+            <button class="btn btn-primary" type="button" id="jvSave">حفظ المقطع</button>
+            <button class="btn btn-ghost" type="button" id="jvCancel">إلغاء</button>
           </div>
         </div>
       </section>
@@ -757,7 +811,7 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
       state.loaded.customers = true; renderCustomers();
     }
     if(t === 'content'){ ctShow('list'); return loadContent(); }
-    if(t === 'jamal'){ jmShow('list'); return loadJamal(); }
+    if(t === 'jamal'){ jmShow('list'); if(jvKind === 'videos') loadVideos(); return loadJamal(); }
     if(t === 'team'){
       var rr = await Promise.all([
         sb.from('staff').select('*').order('created_at'),
@@ -1062,7 +1116,7 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
   var JM_CATS = ['مناسبات عائلية', 'أفراح', 'تخرج', 'منتجات', 'فعاليات', 'أخرى'];
   var jm = [], jmCur = null, jmImg = '', jmFilter = 'الكل';
   ['jmCat', 'jmBulkCat'].forEach(function(id){ JM_CATS.forEach(function(c){ $(id).appendChild(el('option', { value:c, text:c })); }); });
-  function jmShow(w){ $('jmList').hidden = w !== 'list'; $('jmEd').hidden = w !== 'ed'; window.scrollTo(0, 0); }
+  function jmShow(w){ $('jmList').hidden = w !== 'list'; $('jmEd').hidden = w !== 'ed'; if($('jvEd')) $('jvEd').hidden = true; window.scrollTo(0, 0); }
   async function loadJamal(){
     $('jmRows').innerHTML = '<div class="loading"><span class="spin"></span></div>';
     var r = await sb.from('jamal_designs').select('*').order('sort_order', { ascending:true }).order('created_at', { ascending:false });
@@ -1109,7 +1163,7 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
     $('jmPublished').checked = d ? !!d.published : true; jmSetImg(d ? d.image_url : ''); msg($('jmMsg'), '');
     jmShow('ed'); setTimeout(function(){ $('jmTitle').focus(); }, 50);
   }
-  $('jmNew').addEventListener('click', function(){ jmFill(null); });
+  $('jmNew').addEventListener('click', function(){ jvKind === 'videos' ? jvFill(null) : jmFill(null); });
   $('jmCancel').addEventListener('click', function(){ jmShow('list'); });
   $('jmTitle').addEventListener('input', function(){ msg($('jmMsg'), ''); });
   $('jmImgBtn').addEventListener('click', function(){ $('jmFile').click(); });
@@ -1146,6 +1200,159 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
     }
     b.disabled = false; st.textContent = 'انرفع ' + ok + ' من ' + files.length + ' ✓';
     await loadJamal();
+  });
+
+  /* ---------- منصة جمال: المقاطع ---------- */
+  var jv = [], jvCur = null, jvKind = 'designs', jvSrc = 'file', jvFileUrl = '', jvPosterUrl = '', jvBusy = false;
+  var SRC_NAMES = { file:'فيديو', youtube:'يوتيوب', tiktok:'تيك توك', instagram:'إنستقرام', link:'رابط' };
+  JM_CATS.forEach(function(c){ $('jvCat').appendChild(el('option', { value:c, text:c })); });
+  function parseLink(u){
+    u = String(u || '').trim(); if(!/^https:\/\//i.test(u)) return null;
+    var m;
+    if((m = u.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/i))) return { source:'youtube', id:m[1], poster:'https://i.ytimg.com/vi/' + m[1] + '/hqdefault.jpg' };
+    if((m = u.match(/tiktok\.com\/.*\/video\/(\d+)/i))) return { source:'tiktok', id:m[1] };
+    if((m = u.match(/instagram\.com\/(?:reel|reels|p|tv)\/([\w-]+)/i))) return { source:'instagram', id:m[1] };
+    return { source:'link' };
+  }
+  function setKind(k){
+    jvKind = k;
+    document.querySelectorAll('[data-jk]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.jk === k)); });
+    $('jmDesigns').hidden = k !== 'designs'; $('jvWrap').hidden = k !== 'videos';
+    $('jmNew').textContent = k === 'designs' ? '+ تصميم جديد' : '+ مقطع جديد';
+    if(k === 'videos' && !state.loaded.jv) loadVideos();
+  }
+  document.querySelectorAll('[data-jk]').forEach(function(b){ b.addEventListener('click', function(){ setKind(b.dataset.jk); }); });
+  async function loadVideos(){
+    $('jvRows').innerHTML = '<div class="loading"><span class="spin"></span></div>';
+    var r = await sb.from('jamal_videos').select('*').order('sort_order', { ascending:true }).order('created_at', { ascending:false });
+    if(r.error){ $('jvRows').innerHTML = ''; $('jvRows').appendChild(el('div', { class:'empty', style:'grid-column:1/-1', text: errText(r.error) + ' (تأكد إنك شغّلت jamal_videos.sql)' })); return; }
+    jv = r.data || []; state.loaded.jv = true; renderVideos();
+  }
+  function renderVideos(){
+    $('cntVideos').textContent = jv.length ? '(' + jv.length + ')' : '';
+    var box = $('jvRows'); box.innerHTML = '';
+    if(!jv.length){ box.appendChild(el('div', { class:'empty', style:'grid-column:1/-1', text:'ما فيه مقاطع للحين. اضغط «+ مقطع جديد».' })); return; }
+    jv.forEach(function(v){
+      var img = el('div', { class:'jv-img' }, [
+        el('span', { class:'pill ' + (v.published ? 'on' : 'off'), style:'position:absolute;top:8px;inset-inline-start:8px;margin:0', text: v.published ? 'ظاهر' : 'مخفي' }),
+        el('span', { class:'jv-play', html:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>' }),
+        el('span', { class:'jv-src', text: SRC_NAMES[v.source] || '' })]);
+      if(safeUrl(v.poster_url)) img.style.backgroundImage = 'url("' + v.poster_url.replace(/"/g, '') + '")';
+      var tog = el('button', { type:'button', class:'btn btn-ghost btn-sm', text: v.published ? 'إخفاء' : 'إظهار' });
+      tog.addEventListener('click', async function(){
+        var r = await sb.from('jamal_videos').update({ published: !v.published }).eq('id', v.id).select().single();
+        if(r.error) return toast(errText(r.error));
+        v.published = r.data.published; renderVideos(); toast(v.published ? 'صار ظاهر في موقع جمال' : 'انخفى من موقع جمال');
+      });
+      var edit = el('button', { type:'button', class:'btn btn-ghost btn-sm', text:'تعديل', onclick: function(){ jvFill(v); } });
+      var del = el('button', { type:'button', class:'btn btn-danger btn-sm', text:'حذف' });
+      confirmBtn(del, 'تأكيد؟', async function(){
+        var r = await sb.from('jamal_videos').delete().eq('id', v.id);
+        if(r.error) return toast(errText(r.error));
+        jv = jv.filter(function(x){ return x.id !== v.id; }); renderVideos(); toast('انحذف المقطع');
+      });
+      box.appendChild(el('div', { class:'jm-card' }, [img, el('div', { class:'jm-body' }, [
+        el('b', { text: v.title }), el('small', { text: (v.category || 'أخرى') + ' · ترتيب ' + (v.sort_order || 0) }),
+        el('div', { class:'ct-actions' }, [tog, edit, del])])]));
+    });
+  }
+  function jvShow(w){ $('jmList').hidden = w !== 'list'; $('jmEd').hidden = true; $('jvEd').hidden = w !== 'ed'; window.scrollTo(0, 0); }
+  function setSrc(k){ jvSrc = k; document.querySelectorAll('[data-vs]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.vs === k)); }); $('jvFileBox').hidden = k !== 'file'; $('jvLinkBox').hidden = k !== 'link'; }
+  document.querySelectorAll('[data-vs]').forEach(function(b){ b.addEventListener('click', function(){ setSrc(b.dataset.vs); msg($('jvMsg'), ''); }); });
+  function setPoster(u){ jvPosterUrl = u || ''; $('jvPoster').hidden = !jvPosterUrl; if(jvPosterUrl) $('jvPoster').src = jvPosterUrl; $('jvPosterBtn').textContent = jvPosterUrl ? 'تغيير الغلاف' : 'اختيار غلاف'; }
+  function linkInfo(){
+    var p = parseLink($('jvLink').value), t = $('jvLinkInfo');
+    if(!$('jvLink').value.trim()){ t.textContent = ''; return; }
+    if(!p){ t.textContent = 'الرابط لازم يبدأ بـ https://'; return; }
+    t.textContent = p.source === 'link' ? 'رابط عام — بيفتح في صفحة جديدة (لتيك توك استخدم الرابط الكامل اللي فيه /video/)' : '✓ ' + SRC_NAMES[p.source];
+    if(p.poster && (!jvPosterUrl || /ytimg\.com/.test(jvPosterUrl))) setPoster(p.poster);
+  }
+  $('jvLink').addEventListener('input', function(){ msg($('jvMsg'), ''); linkInfo(); });
+  function jvFill(v){
+    jvCur = v; $('jvEdTitle').textContent = v ? 'تعديل المقطع' : 'مقطع جديد';
+    $('jvTitle').value = v ? v.title : ''; $('jvCat').value = v ? (v.category || 'أخرى') : JM_CATS[0];
+    $('jvOrder').value = v ? (v.sort_order || 0) : 0; $('jvPublished').checked = v ? !!v.published : true;
+    jvFileUrl = v && v.source === 'file' ? v.video_url : '';
+    $('jvLink').value = v && v.source !== 'file' ? v.video_url : '';
+    $('jvFileInfo').textContent = jvFileUrl ? '✓ الفيديو مرفوع' : 'MP4 أو MOV — حتى 50 ميغا';
+    setSrc(v && v.source !== 'file' ? 'link' : 'file'); setPoster(v ? v.poster_url : ''); linkInfo(); msg($('jvMsg'), '');
+    jvShow('ed'); setTimeout(function(){ $('jvTitle').focus(); }, 50);
+  }
+  function framePoster(file){
+    return new Promise(function(res){
+      var v = document.createElement('video'), u = URL.createObjectURL(file), done = false;
+      function fin(b){ if(done) return; done = true; URL.revokeObjectURL(u); res(b); }
+      v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = u;
+      v.onloadedmetadata = function(){ try{ v.currentTime = Math.min(1, (v.duration || 2) / 3); }catch(e){ fin(null); } };
+      v.onseeked = function(){
+        try{
+          var r = Math.min(1, 720 / Math.max(v.videoWidth, v.videoHeight)), c = document.createElement('canvas');
+          c.width = Math.round(v.videoWidth * r); c.height = Math.round(v.videoHeight * r);
+          c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+          c.toBlob(function(b){ fin(b); }, 'image/jpeg', .82);
+        }catch(e){ fin(null); }
+      };
+      v.onerror = function(){ fin(null); };
+      setTimeout(function(){ fin(null); }, 8000);
+    });
+  }
+  $('jvFileBtn').addEventListener('click', function(){ if(!jvBusy) $('jvFile').click(); });
+  $('jvFile').addEventListener('change', async function(){
+    var f = this.files[0]; this.value = ''; if(!f) return;
+    if(!/^video\//.test(f.type)) return msg($('jvMsg'), 'الملف مو فيديو.');
+    if(f.size > 50 * 1024 * 1024) return msg($('jvMsg'), 'الفيديو أكبر من 50 ميغا (' + Math.round(f.size / 1048576) + ' ميغا). صغّره أو ارفعه على يوتيوب والصق الرابط.');
+    jvBusy = true; $('jvFileBtn').disabled = true; $('jvSave').disabled = true;
+    $('jvFileInfo').textContent = 'جاري رفع الفيديو (' + Math.round(f.size / 1048576) + ' ميغا)… لا تسكّر الصفحة';
+    try{
+      var ext = (f.name.match(/\.(\w{2,5})$/) || [, 'mp4'])[1].toLowerCase();
+      var path = 'jamal/videos/' + (crypto.randomUUID ? crypto.randomUUID() : Date.now()) + '.' + ext;
+      var up = await sb.storage.from('media').upload(path, f, { contentType: f.type, cacheControl:'31536000' });
+      if(up.error) throw up.error;
+      jvFileUrl = sb.storage.from('media').getPublicUrl(path).data.publicUrl;
+      $('jvFileInfo').textContent = '✓ انرفع الفيديو';
+      if(!$('jvTitle').value) $('jvTitle').value = f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ');
+      if(!jvPosterUrl){
+        var pb = await framePoster(f);
+        if(pb){
+          var pp = 'jamal/posters/' + (crypto.randomUUID ? crypto.randomUUID() : Date.now()) + '.jpg';
+          var pu = await sb.storage.from('media').upload(pp, pb, { contentType:'image/jpeg', cacheControl:'31536000' });
+          if(!pu.error) setPoster(sb.storage.from('media').getPublicUrl(pp).data.publicUrl);
+        }
+      }
+      msg($('jvMsg'), '');
+    }catch(e){
+      var m = (e && e.message) || '';
+      $('jvFileInfo').textContent = 'ما انرفع';
+      msg($('jvMsg'), /size|large|413|maximum/i.test(m) ? 'الفيديو أكبر من الحد المسموح في Supabase. صغّره أو استخدم رابط يوتيوب.' : ctMsg(e));
+    }
+    jvBusy = false; $('jvFileBtn').disabled = false; $('jvSave').disabled = false;
+  });
+  $('jvPosterBtn').addEventListener('click', function(){ $('jvPosterFile').click(); });
+  $('jvPosterFile').addEventListener('change', async function(){
+    var f = this.files[0]; this.value = ''; if(!f) return;
+    $('jvPosterBtn').textContent = 'جاري الرفع…';
+    try{ setPoster(await uploadImage(f, 'jamal/posters')); toast('انرفع الغلاف'); } catch(e){ toast(ctMsg(e)); setPoster(jvPosterUrl); }
+  });
+  $('jvTitle').addEventListener('input', function(){ msg($('jvMsg'), ''); });
+  $('jvCancel').addEventListener('click', function(){ jvShow('list'); });
+  $('jvSave').addEventListener('click', async function(){
+    var title = $('jvTitle').value.trim(), src, url;
+    if(!title){ msg($('jvMsg'), 'اكتب عنوان المقطع.'); return $('jvTitle').focus(); }
+    if(jvSrc === 'file'){
+      if(!jvFileUrl) return msg($('jvMsg'), 'ارفع الفيديو أول.');
+      src = 'file'; url = jvFileUrl;
+    } else {
+      var p = parseLink($('jvLink').value);
+      if(!p) return msg($('jvMsg'), 'الصق رابط صحيح يبدأ بـ https://');
+      src = p.source; url = $('jvLink').value.trim();
+    }
+    var row = { title: title, category: $('jvCat').value, source: src, video_url: url, poster_url: jvPosterUrl || null,
+                sort_order: parseInt($('jvOrder').value, 10) || 0, published: $('jvPublished').checked };
+    busy(this, true, 'جاري الحفظ…');
+    var r = jvCur ? await sb.from('jamal_videos').update(row).eq('id', jvCur.id).select().single() : await sb.from('jamal_videos').insert(row).select().single();
+    busy(this, false);
+    if(r.error) return msg($('jvMsg'), ctMsg(r.error));
+    toast(row.published ? 'انتشر المقطع في موقع جمال ✓' : 'انحفظ (مخفي)'); await loadVideos(); jvShow('list');
   });
 
   /* ---------- الفريق والرموز ---------- */
