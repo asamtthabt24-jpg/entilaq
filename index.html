@@ -192,6 +192,19 @@
   .sec input:focus-visible + span{box-shadow:0 0 0 3px rgba(23,163,152,.25);}
   .secs.sm .sec span{padding:4px 9px;font-size:.72rem;}
   .sec-tags{display:block;font-size:.72rem;color:var(--ink-soft);margin-top:4px;}
+  /* منصة جمال */
+  .jm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+  .jm-card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;}
+  .jm-img{aspect-ratio:4/5;background:var(--paper) center/cover no-repeat;position:relative;}
+  .jm-img .pill{position:absolute;top:8px;inset-inline-start:8px;margin:0;}
+  .jm-body{padding:10px 12px;display:flex;flex-direction:column;gap:6px;flex:1;}
+  .jm-body b{font-size:.92rem;}
+  .jm-body small{font-size:.76rem;color:var(--ink-soft);}
+  .jm-body .ct-actions{margin-top:auto;}
+  .jm-brand{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:100px;background:rgba(32,65,145,.1);color:#204191;font-weight:800;font-size:.84rem;}
+  .bulk{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 14px;border:1.5px dashed rgba(32,65,145,.35);border-radius:14px;background:rgba(32,65,145,.04);margin-bottom:14px;}
+  .bulk select{padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-weight:700;}
+  .jm-prev{width:180px;aspect-ratio:4/5;object-fit:cover;border-radius:12px;border:1px solid var(--line);}
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:#fff;padding:11px 20px;border-radius:100px;font-size:.86rem;font-weight:700;transition:all .25s;z-index:50;pointer-events:none;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   .spin{display:inline-block;width:18px;height:18px;border:2.5px solid rgba(11,37,54,.15);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;}
@@ -295,6 +308,7 @@
       <button type="button" data-tab="requests" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l1 2h3v15H5V6h3z"/><path d="M9 12h6M9 16h4"/></svg>الطلبات <span class="count" id="cntRequests"></span></button>
       <button type="button" data-tab="customers" aria-selected="false" data-min="مشرف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0"/><path d="M16 4a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6.3"/></svg>العملاء <span class="count" id="cntCustomers"></span></button>
       <button type="button" data-tab="content" aria-selected="false" data-min="مشرف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>المقالات والمشاريع</button>
+      <button type="button" data-tab="jamal" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>منصة جمال <span class="count" id="cntJamal"></span></button>
       <button type="button" data-tab="team" aria-selected="false" data-min="مدير"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 3h4v4l3 3-3 3v4h-4l-3 3-3-3H5v-4l-3-3 3-3V5h4z"/><circle cx="12" cy="12" r="3"/></svg>الفريق والرموز</button>
     </nav>
 
@@ -391,6 +405,52 @@
         </div>
       </section>
 
+      <!-- منصة جمال -->
+      <section data-view="jamal" hidden>
+        <div id="jmList">
+          <div class="ct-head">
+            <span class="jm-brand">📸 تصاميم منصة جمال</span>
+            <div style="flex:1"></div>
+            <a class="btn btn-ghost btn-sm" href="https://jamal360.net" target="_blank" rel="noopener">فتح موقع جمال ↗</a>
+            <button class="btn btn-primary" type="button" id="jmNew">+ تصميم جديد</button>
+          </div>
+          <div class="bulk">
+            <b style="font-size:.86rem">رفع مجموعة صور مرة وحدة:</b>
+            <select id="jmBulkCat" aria-label="تصنيف الصور"></select>
+            <button class="btn btn-ghost btn-sm" type="button" id="jmBulkBtn">اختيار الصور…</button>
+            <input type="file" id="jmBulkFile" accept="image/*" multiple hidden>
+            <span class="hint" id="jmBulkStatus">كل صورة تنضاف كتصميم منشور، وتقدر تعدّل عنوانها بعدين.</span>
+          </div>
+          <div class="chips" id="jmFilters" style="margin-bottom:14px"></div>
+          <div class="jm-grid" id="jmRows"></div>
+        </div>
+        <div class="editor-card" id="jmEd" hidden>
+          <h2 id="jmEdTitle">تصميم جديد</h2>
+          <div class="g2">
+            <div>
+              <label class="field"><span>عنوان التصميم</span><input class="input" id="jmTitle" maxlength="120" placeholder="مثال: حفل زواج — الرياض"></label>
+              <div class="g2">
+                <label class="field"><span>التصنيف</span><select class="input" id="jmCat"></select></label>
+                <label class="field"><span>الترتيب <span class="hint">(الأصغر أول)</span></span><input class="input" type="number" id="jmOrder" value="0" dir="ltr"></label>
+              </div>
+              <label class="field"><span>وصف <span class="hint">(اختياري)</span></span><textarea class="input" id="jmDesc" maxlength="400"></textarea></label>
+              <label class="switch"><input type="checkbox" id="jmPublished" checked> عرض التصميم في موقع جمال</label>
+            </div>
+            <div class="field"><span>الصورة</span>
+              <div class="cover-box" style="flex-direction:column;align-items:flex-start">
+                <img class="jm-prev" id="jmPrev" alt="" hidden><input type="file" id="jmFile" accept="image/*" hidden>
+                <button class="btn btn-ghost btn-sm" type="button" id="jmImgBtn">اختيار صورة</button>
+              </div>
+            </div>
+          </div>
+          <div class="msg" id="jmMsg" hidden></div>
+          <div class="ed-actions">
+            <button class="btn btn-primary" type="button" id="jmSave">حفظ التصميم</button>
+            <button class="btn btn-ghost" type="button" id="jmCancel">إلغاء</button>
+          </div>
+        </div>
+      </section>
+
       <!-- الفريق -->
       <section data-view="team" hidden>
         <div class="grid2">
@@ -413,6 +473,7 @@
                   <label class="sec"><input type="checkbox" value="customers"><span>العملاء</span></label>
                   <label class="sec"><input type="checkbox" value="posts"><span>المقالات</span></label>
                   <label class="sec"><input type="checkbox" value="projects"><span>المشاريع</span></label>
+                  <label class="sec"><input type="checkbox" value="jamal"><span>منصة جمال</span></label>
                 </div>
               </div>
               <div class="msg" id="codeMsg" hidden></div>
@@ -428,7 +489,7 @@
             </div>
             <div class="perm">
               <b>مدير:</b> كل شي + الفريق والرموز + حذف الطلبات<br>
-              <b>مشرف:</b> الطلبات والعملاء والمقالات والمشاريع<br>
+              <b>مشرف:</b> الطلبات والعملاء والمقالات والمشاريع ومنصة جمال<br>
               <b>عامل:</b> الأقسام اللي تختارها له بس
             </div>
           </div>
@@ -495,15 +556,15 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
   function waNum(p){ p = String(p || '').replace(/\D/g, ''); if(/^05\d{8}$/.test(p)) p = '966' + p.slice(1); return p; }
   function stClass(s){ return 'st-' + String(s || '').split(' ')[0]; }
   function can(min){ return state.role && RANK[state.role] >= RANK[min]; }
-  var SEC_NAMES = { requests:'الطلبات', customers:'العملاء', posts:'المقالات', projects:'المشاريع' };
-  var SEC_KEYS = ['requests', 'customers', 'posts', 'projects'];
+  var SEC_NAMES = { requests:'الطلبات', customers:'العملاء', posts:'المقالات', projects:'المشاريع', jamal:'منصة جمال' };
+  var SEC_KEYS = ['requests', 'customers', 'posts', 'projects', 'jamal'];
   function has(sec){
     if(state.role === 'مدير') return true;
     if(state.role === 'مشرف') return sec !== 'team';
     return (state.sections || []).indexOf(sec) > -1;
   }
   var TAB_OK = { requests: function(){ return has('requests'); }, customers: function(){ return has('customers'); },
-                 content: function(){ return has('posts') || has('projects'); }, team: function(){ return state.role === 'مدير'; } };
+                 content: function(){ return has('posts') || has('projects'); }, jamal: function(){ return has('jamal'); }, team: function(){ return state.role === 'مدير'; } };
   function secLabel(arr){ return (arr || []).map(function(k){ return SEC_NAMES[k] || k; }).join('، '); }
   function msg(box, text, kind){ box.hidden = !text; box.textContent = text || ''; box.className = 'msg ' + (kind || 'err'); }
   function busy(btn, on, label){ if(on){ btn.dataset.l = btn.textContent; btn.textContent = label || '…'; } else if(btn.dataset.l) btn.textContent = btn.dataset.l; btn.disabled = on; }
@@ -696,6 +757,7 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
       state.loaded.customers = true; renderCustomers();
     }
     if(t === 'content'){ ctShow('list'); return loadContent(); }
+    if(t === 'jamal'){ jmShow('list'); return loadJamal(); }
     if(t === 'team'){
       var rr = await Promise.all([
         sb.from('staff').select('*').order('created_at'),
@@ -994,6 +1056,96 @@ window.ENTILAQ_DB = window.ENTILAQ_DB || {
     busy(this, false);
     if(r.error) return msg($('projMsg'), ctMsg(r.error));
     toast('انحفظ المشروع ✓'); await loadContent(); ct = 'projects'; renderCt(); ctShow('list');
+  });
+
+  /* ---------- منصة جمال: التصاميم ---------- */
+  var JM_CATS = ['مناسبات عائلية', 'أفراح', 'تخرج', 'منتجات', 'فعاليات', 'أخرى'];
+  var jm = [], jmCur = null, jmImg = '', jmFilter = 'الكل';
+  ['jmCat', 'jmBulkCat'].forEach(function(id){ JM_CATS.forEach(function(c){ $(id).appendChild(el('option', { value:c, text:c })); }); });
+  function jmShow(w){ $('jmList').hidden = w !== 'list'; $('jmEd').hidden = w !== 'ed'; window.scrollTo(0, 0); }
+  async function loadJamal(){
+    $('jmRows').innerHTML = '<div class="loading"><span class="spin"></span></div>';
+    var r = await sb.from('jamal_designs').select('*').order('sort_order', { ascending:true }).order('created_at', { ascending:false });
+    if(r.error){ $('jmRows').innerHTML = ''; $('jmRows').appendChild(el('div', { class:'empty', text: errText(r.error) + ' (تأكد إنك شغّلت jamal.sql)' })); return; }
+    jm = r.data || []; state.loaded.jamal = true; renderJamal();
+  }
+  function renderJamal(){
+    $('cntJamal').textContent = jm.length || '';
+    var f = $('jmFilters'); f.innerHTML = '';
+    var counts = { 'الكل': jm.length }; jm.forEach(function(d){ var c = d.category || 'أخرى'; counts[c] = (counts[c] || 0) + 1; });
+    ['الكل'].concat(JM_CATS).forEach(function(c){
+      if(c !== 'الكل' && !counts[c]) return;
+      f.appendChild(el('button', { type:'button', class:'chip', 'aria-pressed': String(jmFilter === c), onclick: function(){ jmFilter = c; renderJamal(); } }, [c + ' ', el('b', { text: String(counts[c] || 0) })]));
+    });
+    var box = $('jmRows'); box.innerHTML = '';
+    var rows = jm.filter(function(d){ return jmFilter === 'الكل' || (d.category || 'أخرى') === jmFilter; });
+    if(!rows.length){ box.appendChild(el('div', { class:'empty', style:'grid-column:1/-1', text: jm.length ? 'ما فيه تصاميم بهالتصنيف.' : 'ما فيه تصاميم للحين. اضغط «+ تصميم جديد» أو ارفع مجموعة صور.' })); return; }
+    rows.forEach(function(d){
+      var img = el('div', { class:'jm-img' }, [el('span', { class:'pill ' + (d.published ? 'on' : 'off'), text: d.published ? 'ظاهر' : 'مخفي' })]);
+      if(safeUrl(d.image_url)) img.style.backgroundImage = 'url("' + d.image_url.replace(/"/g, '') + '")';
+      var tog = el('button', { type:'button', class:'btn btn-ghost btn-sm', text: d.published ? 'إخفاء' : 'إظهار' });
+      tog.addEventListener('click', async function(){
+        var r = await sb.from('jamal_designs').update({ published: !d.published }).eq('id', d.id).select().single();
+        if(r.error) return toast(errText(r.error));
+        d.published = r.data.published; renderJamal(); toast(d.published ? 'صار ظاهر في موقع جمال' : 'انخفى من موقع جمال');
+      });
+      var edit = el('button', { type:'button', class:'btn btn-ghost btn-sm', text:'تعديل', onclick: function(){ jmFill(d); } });
+      var del = el('button', { type:'button', class:'btn btn-danger btn-sm', text:'حذف' });
+      confirmBtn(del, 'تأكيد؟', async function(){
+        var r = await sb.from('jamal_designs').delete().eq('id', d.id);
+        if(r.error) return toast(errText(r.error));
+        jm = jm.filter(function(x){ return x.id !== d.id; }); renderJamal(); toast('انحذف التصميم');
+      });
+      box.appendChild(el('div', { class:'jm-card' }, [img, el('div', { class:'jm-body' }, [
+        el('b', { text: d.title }), el('small', { text: (d.category || 'أخرى') + ' · ترتيب ' + (d.sort_order || 0) }),
+        el('div', { class:'ct-actions' }, [tog, edit, del])])]));
+    });
+  }
+  function jmSetImg(u){ jmImg = u || ''; $('jmPrev').hidden = !jmImg; if(jmImg) $('jmPrev').src = jmImg; $('jmImgBtn').textContent = jmImg ? 'تغيير الصورة' : 'اختيار صورة'; }
+  function jmFill(d){
+    jmCur = d; $('jmEdTitle').textContent = d ? 'تعديل التصميم' : 'تصميم جديد';
+    $('jmTitle').value = d ? d.title : ''; $('jmCat').value = d ? (d.category || 'أخرى') : JM_CATS[0];
+    $('jmOrder').value = d ? d.sort_order : 0; $('jmDesc').value = d ? (d.description || '') : '';
+    $('jmPublished').checked = d ? !!d.published : true; jmSetImg(d ? d.image_url : ''); msg($('jmMsg'), '');
+    jmShow('ed'); setTimeout(function(){ $('jmTitle').focus(); }, 50);
+  }
+  $('jmNew').addEventListener('click', function(){ jmFill(null); });
+  $('jmCancel').addEventListener('click', function(){ jmShow('list'); });
+  $('jmTitle').addEventListener('input', function(){ msg($('jmMsg'), ''); });
+  $('jmImgBtn').addEventListener('click', function(){ $('jmFile').click(); });
+  $('jmFile').addEventListener('change', async function(){
+    var f = this.files[0]; this.value = ''; if(!f) return;
+    $('jmImgBtn').textContent = 'جاري الرفع…';
+    try{ jmSetImg(await uploadImage(f, 'jamal')); msg($('jmMsg'), ''); if(!$('jmTitle').value) $('jmTitle').value = f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' '); toast('انرفعت الصورة'); }
+    catch(e){ toast(ctMsg(e)); jmSetImg(jmImg); }
+  });
+  $('jmSave').addEventListener('click', async function(){
+    var title = $('jmTitle').value.trim();
+    if(!title){ msg($('jmMsg'), 'اكتب عنوان التصميم.'); return $('jmTitle').focus(); }
+    if(!jmImg) return msg($('jmMsg'), 'ارفع صورة التصميم.');
+    var row = { title: title, category: $('jmCat').value, description: $('jmDesc').value.trim() || null, image_url: jmImg,
+                sort_order: parseInt($('jmOrder').value, 10) || 0, published: $('jmPublished').checked };
+    busy(this, true, 'جاري الحفظ…');
+    var r = jmCur ? await sb.from('jamal_designs').update(row).eq('id', jmCur.id).select().single() : await sb.from('jamal_designs').insert(row).select().single();
+    busy(this, false);
+    if(r.error) return msg($('jmMsg'), ctMsg(r.error));
+    toast(row.published ? 'انتشر في موقع جمال ✓' : 'انحفظ (مخفي)'); await loadJamal(); jmShow('list');
+  });
+  $('jmBulkBtn').addEventListener('click', function(){ $('jmBulkFile').click(); });
+  $('jmBulkFile').addEventListener('change', async function(){
+    var files = Array.prototype.slice.call(this.files); this.value = ''; if(!files.length) return;
+    var cat = $('jmBulkCat').value, st = $('jmBulkStatus'), b = $('jmBulkBtn'), ok = 0;
+    b.disabled = true;
+    for(var i = 0; i < files.length; i++){
+      st.textContent = 'جاري رفع ' + (i + 1) + ' من ' + files.length + '…';
+      try{
+        var u = await uploadImage(files[i], 'jamal');
+        var r = await sb.from('jamal_designs').insert({ title: cat + ' — ' + files[i].name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').slice(0, 60), category: cat, image_url: u, published: true }).select().single();
+        if(r.error) throw r.error; ok++;
+      }catch(e){ toast(ctMsg(e)); }
+    }
+    b.disabled = false; st.textContent = 'انرفع ' + ok + ' من ' + files.length + ' ✓';
+    await loadJamal();
   });
 
   /* ---------- الفريق والرموز ---------- */
